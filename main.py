@@ -312,7 +312,6 @@ def callback_query(call):
                         parse_mode='Markdown',
                         )
     
-
     elif query == 'back':
         destination = call_data[1]
 
@@ -434,6 +433,13 @@ def callback_query(call):
                                               message_id=message_id,
                                               reply_markup=keyboards.update_keyboard(),
                                               )
+        
+        elif answer == 'no':
+            bot.edit_message_text(chat_id=chat_id,
+                                  message_id=message_id,
+                                  text=text.NO_HELP,
+                                  parse_mode='Markdown',
+                                  )
     
     elif query == 'update':
         if username:
@@ -613,9 +619,9 @@ def handle_text(message):
 
 
 if __name__ == '__main__':
-    bot.polling(timeout=80)
-    # while True:
-    #     try:
-    #         bot.polling()
-    #     except:
-    #         pass
+    # bot.polling(timeout=80)
+    while True:
+        try:
+            bot.polling()
+        except:
+            pass
