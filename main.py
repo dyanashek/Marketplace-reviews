@@ -278,17 +278,14 @@ def callback_query(call):
                 db_functions.update_users_field(user_id, 'smiles', smiles)
                 db_functions.update_users_field(user_id, 'eligible', False)
                 db_functions.update_users_field(user_id, 'last_participate', datetime.datetime.utcnow())
+                db_functions.update_users_field(user_id, 'input', True)
+                db_functions.update_users_field(user_id, 'input_data', 'receive_0')
 
                 bot.edit_message_text(chat_id=chat_id,
                                     message_id=message_id,
                                     text=reply_text,
                                     parse_mode='Markdown',
                                     )
-                
-                bot.edit_message_reply_markup(chat_id=chat_id,
-                                            message_id=message_id,
-                                            reply_markup=keyboards.received_keyboard(),
-                                            )
 
         else:
             bot.edit_message_text(chat_id=chat_id,
@@ -299,21 +296,23 @@ def callback_query(call):
     
     elif query == 'received':
         bot.edit_message_reply_markup(chat_id=chat_id,
-                                            message_id=message_id,
-                                            reply_markup=telebot.types.InlineKeyboardMarkup(),
-                                            )
+                                      message_id=message_id,
+                                      reply_markup=telebot.types.InlineKeyboardMarkup(),
+                                      )
 
         db_functions.update_users_field(user_id, 'input', True)
-        db_functions.update_users_field(user_id, 'input_data', 'receive_0')
+        db_functions.update_users_field(user_id, 'input_data', 'review_0')
 
         products = eval(db_functions.get_users_field_info(user_id, 'products'))
-        reply_text = text.receive_product(utils.escape_markdown(products[0]))
+        smile = db_functions.get_users_field_info(user_id, 'smiles')[0]
+        reply_text = text.review_product(utils.escape_markdown(products[0]), smile)
 
         bot.send_message(chat_id=chat_id,
-                            text=reply_text,
-                            parse_mode='Markdown',
-                            )
+                        text=reply_text,
+                        parse_mode='Markdown',
+                        )
     
+
     elif query == 'back':
         destination = call_data[1]
 
@@ -468,14 +467,24 @@ def handle_text(message):
             db_functions.update_users_field(user_id, 'receive', str(current_receive))
 
             if len(products) == len(current_receive):
-                smile = db_functions.get_users_field_info(user_id, 'smiles')[0]
-                db_functions.update_users_field(user_id, 'input_data', 'review_0')
-                reply_text = text.review_product(utils.escape_markdown(products[0]), smile)
+                threading.Thread(daemon=True, 
+                            target=functions.inform_manager_bought,
+                            args=(user_id,) 
+                            ).start()
+
+                db_functions.update_users_field(user_id, 'input', False)
+                db_functions.update_users_field(user_id, 'input_data', None)
+
+                smiles = db_functions.get_users_field_info(user_id, 'smiles')
+                
+                reply_text = text.when_receive(products, smiles)
 
                 bot.send_message(chat_id=chat_id,
                                 text=reply_text,
+                                reply_markup=keyboards.received_keyboard(),
                                 parse_mode='Markdown',
                                 )
+
             else:
                 index = int(input_data.split('_')[1]) + 1
                 db_functions.update_users_field(user_id, 'input_data', f'receive_{index}')
@@ -604,9 +613,9 @@ def handle_text(message):
 
 
 if __name__ == '__main__':
-    # bot.polling(timeout=80)
-    while True:
-        try:
-            bot.polling()
-        except:
-            pass
+    bot.polling(timeout=80)
+    # while True:
+    #     try:
+    #         bot.polling()
+    #     except:
+    #         pass

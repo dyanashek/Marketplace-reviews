@@ -50,15 +50,26 @@ def bought_products(products):
     for num, product in enumerate(products):
         smile = random.choice(config.SMILES)
         smiles += smile
-        reply_text += f'{num + 1}. {product} {smile}\n'
+        reply_text += f'{num + 1}. {product}\n'
     
-    reply_text += '\nПосле получения товара, воспользуйтесь кнопкой *"Получено"*, вам понадобятся скриншоты выкупов и оставленных отзывов (напротив товара указан смайлик, который нужно будет включить в отзыв, чтобы мы смогли его идентифицировать). Пожалуйста, не завершайте и не удаляйте чат.'
+    reply_text += f'\nПожалуйста, отправьте скриншот, подтверждающий покупку товара *{products[0]}*.'
 
     return reply_text, smiles
 
 
+def when_receive(products, smiles):
+    reply_text = 'Скриншоты, подтверждающие покупку следующих товаров, отправлены администратору:\n\n'
+
+    for num, product in enumerate(products):
+        reply_text += f'{num + 1}. {product} - {smiles[num]}\n'
+    
+    reply_text += '\nПосле получения товара, воспользуйтесь кнопкой *"Получено"*, вам понадобятся скриншоты оставленных отзывов (напротив товара указан смайлик, который нужно будет включить в отзыв, чтобы мы смогли его идентифицировать). Пожалуйста, не завершайте и не удаляйте чат.'
+
+    return reply_text
+
+
 def receive_product(product):
-    return f'Пожалуйста, отправьте скриншот, подтверждающий выкуп товара *{product}*.'
+    return f'Пожалуйста, отправьте скриншот, подтверждающий покупку товара *{product}*.'
 
 
 def review_product(product, smile):
@@ -96,6 +107,15 @@ def inform_manager(username, payment_method, bank, account, products, smiles):
                 \n\
                 \nТовары:\
                 '''
+
+    for num in range(len(products)):
+        reply_text += f'\n{num + 1}. {products[num]} - {smiles[num]}'
+    
+    return reply_text
+
+
+def inform_manager_bought(username, products, smiles):    
+    reply_text = f'Пользователь @{username} отметил, что заказал следующие товары:\n'
 
     for num in range(len(products)):
         reply_text += f'\n{num + 1}. {products[num]} - {smiles[num]}'

@@ -48,6 +48,40 @@ def update_database(user_id):
         pass
 
 
+def inform_manager_bought(user_id):
+    user_info = db_functions.select_user_info(user_id)
+
+    username = user_info[2]
+
+    products = eval(user_info[9])
+    smiles = user_info[12]
+
+    receive = eval(user_info[10])
+    
+    reply_text = text.inform_manager_bought(username, products, smiles)
+
+    try:
+        sended_message = bot.send_message(chat_id=config.MANAGER_ID,
+                        text=reply_text,
+                        parse_mode='Markdown',
+                        )
+    except:
+        pass
+
+    group_media = []
+    for photo in receive:
+        group_media.append(telebot.types.InputMediaPhoto(photo))
+
+    try:
+        bot.send_media_group(chat_id=config.MANAGER_ID,
+                                media=group_media,
+                                reply_to_message_id=sended_message.id,
+                                timeout=30,
+                                )
+    except:
+        pass
+
+
 def inform_manager(user_id):
     user_info = db_functions.select_user_info(user_id)
 

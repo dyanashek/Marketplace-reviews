@@ -99,10 +99,18 @@ def select_again_eligible_users(products):
 
     time_filter = datetime.datetime.utcnow() - datetime.timedelta(days=7)
 
+    request = ''
+
+    for product in products:
+        request += f'''history NOT LIKE "%'{product[1]}'%" OR '''
+    
+    request = '(' + request.rstrip(' OR ') + ')'
+
     ids = cursor.execute(f'''SELECT user_id 
                             FROM users 
                             WHERE products=? AND receive=? AND review=? AND 
-                            eligible=? AND smiles IS ? AND last_participate<?
+                            eligible=? AND smiles IS ? AND last_participate<? AND
+                            {request}
                             ''', ('[]', '[]', '[]', False, None, time_filter,)).fetchall()
                             
     cursor.close()
